@@ -225,7 +225,24 @@ class _CameraPageState extends State<CameraPage> {
                           color: isVideo ? Colors.white : Colors.black),
                     )),
               ],
-            ))
+            )),
+
+        Positioned(
+          top: 50,
+          left: 30,
+          child: Material(
+            color: Colors.transparent,
+            child: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_outlined,
+                  size: 30,
+                  color: Colors.white,
+                )),
+          ),
+        )
       ],
     );
   }
