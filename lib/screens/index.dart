@@ -28,7 +28,9 @@ class _IndexState extends State<Index> {
           ),
           SizedBox(
             height: size.height * 0.5,
-            // child: ,
+            child: Image.asset(
+              "assets/images/cameralight 1.png",
+            ),
           ),
           ElevatedButton(
               onPressed: () {
