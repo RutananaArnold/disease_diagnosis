@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:pagination_exp/screens/display_screen.dart';
 import 'package:pagination_exp/widgets/photo_capture.dart';
+import 'package:torch_light/torch_light.dart';
 
 class CameraPage extends StatefulWidget {
   final CameraDescription camera;
@@ -35,6 +36,7 @@ class _CameraPageState extends State<CameraPage> {
     initializeControllerFuture = cameraController.initialize();
   }
 
+  bool isTorchOn = false;
   @override
   void dispose() {
     // Dispose of the controller when the widget is disposed.
@@ -63,7 +65,76 @@ class _CameraPageState extends State<CameraPage> {
           ),
         ),
 
-        // options part for capturing , file picker and filters
+        // options part for capturing , file picker and filters and flash icon
+        // Positioned(
+        //   top: 50,
+        //   left: 360,
+        //   right: 10,
+        //   child: Material(
+        //     color: Colors.transparent,
+        //     child: IconButton(
+        //         onPressed: () {
+        //           if (isTorchOn) {
+        //             setState(() {
+        //               FlashMode.torch;
+        //               isTorchOn = false;
+        //             });
+        //           } else {
+        //             setState(() {
+        //               FlashMode.off;
+        //               isTorchOn = true;
+        //             });
+        //           }
+        //         },
+        //         icon: Icon(
+        //           isTorchOn ? Icons.flash_on : Icons.flash_off,
+        //           size: 30,
+        //           color: Colors.white,
+        //         )),
+        //   ),
+        // ),
+        Positioned(
+          top: 50,
+          left: 360,
+          right: 10,
+          child: FutureBuilder<bool>(
+            future: isTorchAvailable(context),
+            builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+              if (snapshot.hasData && snapshot.data!) {
+                return Material(
+                  color: Colors.transparent,
+                  child: IconButton(
+                      onPressed: () {
+                        if (isTorchOn) {
+                          setState(() {
+                            enableTorch(context);
+                            isTorchOn = false;
+                          });
+                        } else {
+                          setState(() {
+                            disableTorch(context);
+                            isTorchOn = true;
+                          });
+                        }
+                      },
+                      icon: Icon(
+                        isTorchOn ? Icons.flash_on : Icons.flash_off,
+                        size: 30,
+                        color: Colors.white,
+                      )),
+                );
+              } else if (snapshot.hasData) {
+                return const Center(
+                  child: Text('No torch available.'),
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
+          ),
+        ),
         Positioned(
           bottom: size.height * 0.07,
           left: size.width * 0.2,
@@ -229,7 +300,7 @@ class _CameraPageState extends State<CameraPage> {
 
         Positioned(
           top: 50,
-          left: 30,
+          left: 5,
           child: Material(
             color: Colors.transparent,
             child: IconButton(
@@ -245,5 +316,38 @@ class _CameraPageState extends State<CameraPage> {
         )
       ],
     );
+  }
+
+  Future<bool> isTorchAvailable(BuildContext context) async {
+    try {
+      return await TorchLight.isTorchAvailable();
+    } on Exception catch (_) {
+      _showMessage(
+        'Could not check if the device has an available torch',
+        context,
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> enableTorch(BuildContext context) async {
+    try {
+      await TorchLight.enableTorch();
+    } on Exception catch (_) {
+      _showMessage('Could not enable torch', context);
+    }
+  }
+
+  Future<void> disableTorch(BuildContext context) async {
+    try {
+      await TorchLight.disableTorch();
+    } on Exception catch (_) {
+      _showMessage('Could not disable torch', context);
+    }
+  }
+
+  void _showMessage(String message, BuildContext context) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
